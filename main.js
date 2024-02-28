@@ -15,10 +15,10 @@ function move(row, col) {
 
     displayGame();
 
-    if(checkWin(currentPlayer)) {
+    if(checkWin(currentPlayer, game)) {
       alert(`Player ${currentPlayer} wins!`);
       gameOver = true;
-    } else if(checkDraw()) {
+    } else if(checkDraw(game)) {
       alert('It\'s a draw!');
       gameOver = true;
     } else {
@@ -32,29 +32,30 @@ function move(row, col) {
   };
 };
 
-function checkWin(player) {
+function checkWin(player, gameBoard) {
   for(let row = 0; row < 3; row++) {
-    if(game[row][0] === player && game[row][1] === player && game[row][2] === player) {
+    if(gameBoard[row][0] === player && gameBoard[row][1] === player && gameBoard[row][2] === player) {
       return true;
     };
   };
   for(let col = 0; col < 3; col++) {
-    if(game[0][col] === player && game[1][col] === player && game[2][col] === player) {
+    if(gameBoard[0][col] === player && gameBoard[1][col] === player && gameBoard[2][col] === player) {
       return true;
     };
   };
-  if(game[0][0] === player && game[1][1] === player && game[2][2] === player) {
+  if(gameBoard[0][0] === player && gameBoard[1][1] === player && gameBoard[2][2] === player) {
     return true;
   };
-  if(game[0][2] === player && game[1][1] === player && game[2][0] === player) {
+  if(gameBoard[0][2] === player && gameBoard[1][1] === player && gameBoard[2][0] === player) {
     return true;
   };
+  return false;
 };
 
-function checkDraw() {
+function checkDraw(gameBoard) {
   for(let row = 0; row < 3; row++) {
     for(let col = 0; col < 3; col++) {
-      if(game[row][col] === '') {
+      if(gameBoard[row][col] === '') {
         return false;
       };
     };
@@ -96,6 +97,17 @@ document.querySelector('.reset').addEventListener('click', resetGame);
 
 function aiSentence() {
   const listMove = [];
+  let oneMove = canWinInOneMove('O', game);
+  if(oneMove) {
+    move(oneMove[0], oneMove[1]);
+    return;
+  }
+
+  oneMove = canWinInOneMove('X', game);
+  if(oneMove) {
+    move(oneMove[0], oneMove[1]);
+    return;
+  }
   for(let i = 0; i<100; i++) {
     const testGame = JSON.parse(JSON.stringify(game));
     listMove.push({score: 0, move: []})
@@ -110,11 +122,11 @@ function aiSentence() {
           break;
         }
       }
-      if(aiCheckWin(tempPlayer, testGame)) {
+      if(checkWin(tempPlayer, testGame)) {
         listMove[i].score = tempPlayer === currentPlayer ? 2 : -2;
         break;
       } else {
-        if(aiCheckDraw(testGame)) {
+        if(checkDraw(testGame)) {
           listMove[i].score = 1;
           break;
         }
@@ -123,36 +135,6 @@ function aiSentence() {
     }
   }
   bestSentence(listMove);
-}
-
-function aiCheckWin(player, newGame){
-  for(let row = 0; row < 3; row++) {
-    if(newGame[row][0] === player && newGame[row][1] === player && newGame[row][2] === player) {
-      return true;
-    };
-  };
-  for(let col = 0; col < 3; col++) {
-    if(newGame[0][col] === player && newGame[1][col] === player && newGame[2][col] === player) {
-      return true;
-    };
-  };
-  if(newGame[0][0] === player && newGame[1][1] === player && newGame[2][2] === player) {
-    return true;
-  };
-  if(newGame[0][2] === player && newGame[1][1] === player && newGame[2][0] === player) {
-    return true;
-  };
-}
-
-function aiCheckDraw(newGame) {
-  for(let row = 0; row < 3; row++) {
-    for(let col = 0; col < 3; col++) {
-      if(newGame[row][col] === '') {
-        return false;
-      };
-    };
-  };
-  return true;
 }
 
 function bestSentence(sentence) {
@@ -180,4 +162,20 @@ function findShortestMove(sentence) {
     }
   }
   move(shortest[0][0], shortest[0][1])
+}
+
+function canWinInOneMove(player, gameBoard) {
+  for(let row = 0; row < 3; row++) {
+    for(let col = 0; col < 3; col++) {
+      if(gameBoard[row][col] === '') {
+        gameBoard[row][col] = player;
+        if(checkWin(player, gameBoard)) {
+          gameBoard[row][col] = '';
+          return [row, col];
+        }
+        gameBoard[row][col] = '';
+      }
+    }
+  }
+  return null;
 }
