@@ -34,3 +34,23 @@ body {
   text-align: center;
   font-size: 5rem;
 }
+
+.reset {
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  background-color: #ffffdf;
+  color: black;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px #d2d2b7;
+}
+
+.reset:hover {
+  background-color: #ffffdf68;
+}
+
+.reset:active {
+  background: none;
+}
