@@ -27,7 +27,7 @@ function move(row, col) {
 
 
     if(currentPlayer === 'O' && !gameOver) {
-      aiSentence();
+      aiMove();
     };
   };
 };
@@ -95,7 +95,7 @@ document.querySelector('.reset').addEventListener('click', resetGame);
 
 // AI
 
-function aiSentence() {
+function aiMove() {
   const listMove = [];
   let oneMove = canWinInOneMove('O', game);
   if(oneMove) {
@@ -108,7 +108,7 @@ function aiSentence() {
     move(oneMove[0], oneMove[1]);
     return;
   }
-  for(let i = 0; i<100; i++) {
+  for(let i = 0; i<10000; i++) {
     const testGame = JSON.parse(JSON.stringify(game));
     listMove.push({score: 0, move: []})
     let tempPlayer = currentPlayer;
@@ -138,20 +138,28 @@ function aiSentence() {
 }
 
 function bestSentence(sentence) {
-  const bestMoves = []; 
-  let high = sentence[0].score;
-  for(let i = 1; i < sentence.length; i++) {
-    if(sentence[i].score > high) {
-      high = sentence[i].score;
-    }
-  };
-  for(let i = 0; i < sentence.length; i++) {
-    if(sentence[i].score === high) {
-      bestMoves.push(sentence[i].move);
-    }
-  }
+  const bestMoves = findBestMoves(sentence, 'score');
+  findRepetition(bestMoves);
+}
 
-  findShortestMove(bestMoves);
+function findRepetition(sentence){
+  const repetition = [];
+  for(let i = 0; i < sentence.length; i++) {
+    let score = sentence[i].score;
+    const temp = sentence[i];
+    for(let j = i + 1; j < sentence.length; j++) {
+      if(JSON.stringify(temp.move[0]) === JSON.stringify(sentence[j].move[0])) {
+        score += sentence[j].score;
+      }
+    }
+    repetition.push({score, move: temp.move});
+  }
+  bestRepetition(repetition);
+}
+
+function bestRepetition(sentence){
+  const bestMoves = findBestMoves(sentence, 'score');
+  findShortestMove(bestMoves.map(s => s.move));
 }
 
 function findShortestMove(sentence) {
@@ -163,6 +171,9 @@ function findShortestMove(sentence) {
   }
   move(shortest[0][0], shortest[0][1])
 }
+
+
+// Algo for AI
 
 function canWinInOneMove(player, gameBoard) {
   for(let row = 0; row < 3; row++) {
@@ -178,4 +189,20 @@ function canWinInOneMove(player, gameBoard) {
     }
   }
   return null;
+}
+
+function findBestMoves(sentence, scoreProperty) {
+  const bestMoves = []; 
+  let high = sentence[0][scoreProperty];
+  for(let i = 1; i < sentence.length; i++) {
+    if(sentence[i][scoreProperty] > high) {
+      high = sentence[i][scoreProperty];
+    }
+  };
+  for(let i = 0; i < sentence.length; i++) {
+    if(sentence[i][scoreProperty] === high) {
+      bestMoves.push(sentence[i]);
+    }
+  }
+  return bestMoves;
 }
