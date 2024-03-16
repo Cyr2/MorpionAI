@@ -96,7 +96,6 @@ document.querySelector('.reset').addEventListener('click', resetGame);
 // AI
 
 function aiMove() {
-  const listMove = [];
   let oneMove = canWinInOneMove('O', game);
   if(oneMove) {
     move(oneMove[0], oneMove[1]);
@@ -108,70 +107,36 @@ function aiMove() {
     move(oneMove[0], oneMove[1]);
     return;
   }
-  for(let i = 0; i<10000; i++) {
-    const testGame = JSON.parse(JSON.stringify(game));
-    listMove.push({score: 0, move: []})
-    let tempPlayer = currentPlayer;
-    while(true) {
-      while(true) {
-        let row = Math.floor(Math.random() * 3);
-        let col = Math.floor(Math.random() * 3);
-        if (testGame[row][col] === '') {
-          testGame[row][col] = tempPlayer;
-          listMove[i].move.push([row, col]);
-          break;
+
+  let result = minimax(game, 0, 'O');
+  move(result.move[0], result.move[1]);
+}
+
+function minimax(game, depth, player) {
+  let bestScore = (player === 'O') ? -Infinity : Infinity;
+  let move = null;
+
+  if(checkWin('X', game)) return { score: -10, move: null };
+  if(checkWin('O', game)) return { score: 10, move: null };
+  if(checkDraw(game)) return { score: 0, move: null };
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (game[row][col] === '') {
+        game[row][col] = player;
+        let result = minimax(game, depth + 1, (player === 'O') ? 'X' : 'O');
+        game[row][col] = '';
+
+        if ((player === 'O' && result.score > bestScore) || (player === 'X' && result.score < bestScore)) {
+          bestScore = result.score;
+          move = [row, col];
         }
       }
-      if(checkWin(tempPlayer, testGame)) {
-        listMove[i].score = tempPlayer === currentPlayer ? 2 : -2;
-        break;
-      } else {
-        if(checkDraw(testGame)) {
-          listMove[i].score = 1;
-          break;
-        }
-      }
-      tempPlayer = tempPlayer === 'X' ? 'O' : 'X';
     }
   }
-  bestSentence(listMove);
-}
 
-function bestSentence(sentence) {
-  const bestMoves = findBestMoves(sentence, 'score');
-  findRepetition(bestMoves);
+  return { score: bestScore, move: move };
 }
-
-function findRepetition(sentence){
-  const repetition = [];
-  for(let i = 0; i < sentence.length; i++) {
-    let score = sentence[i].score;
-    const temp = sentence[i];
-    for(let j = i + 1; j < sentence.length; j++) {
-      if(JSON.stringify(temp.move[0]) === JSON.stringify(sentence[j].move[0])) {
-        score += sentence[j].score;
-      }
-    }
-    repetition.push({score, move: temp.move});
-  }
-  bestRepetition(repetition);
-}
-
-function bestRepetition(sentence){
-  const bestMoves = findBestMoves(sentence, 'score');
-  findShortestMove(bestMoves.map(s => s.move));
-}
-
-function findShortestMove(sentence) {
-  let shortest = sentence[0];
-  for(let i = 1; i < sentence.length; i++) {
-    if(sentence[i].length < shortest.length) {
-      shortest = sentence[i];
-    }
-  }
-  move(shortest[0][0], shortest[0][1])
-}
-
 
 // Algo for AI
 
@@ -189,20 +154,4 @@ function canWinInOneMove(player, gameBoard) {
     }
   }
   return null;
-}
-
-function findBestMoves(sentence, scoreProperty) {
-  const bestMoves = []; 
-  let high = sentence[0][scoreProperty];
-  for(let i = 1; i < sentence.length; i++) {
-    if(sentence[i][scoreProperty] > high) {
-      high = sentence[i][scoreProperty];
-    }
-  };
-  for(let i = 0; i < sentence.length; i++) {
-    if(sentence[i][scoreProperty] === high) {
-      bestMoves.push(sentence[i]);
-    }
-  }
-  return bestMoves;
 }
