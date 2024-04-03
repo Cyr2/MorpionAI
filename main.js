@@ -16,10 +16,14 @@ function move(row, col) {
     displayGame();
 
     if(checkWin(currentPlayer, game)) {
-      alert(`Player ${currentPlayer} wins!`);
+      setTimeout(() => {
+        alert(`Player ${currentPlayer} wins!`);
+      }, 50); 
       gameOver = true;
     } else if(checkDraw(game)) {
-      alert('It\'s a draw!');
+      setTimeout(() => {
+        alert('It\'s a draw!');
+      }, 50); 
       gameOver = true;
     } else {
       currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
@@ -113,7 +117,7 @@ function aiMove() {
 }
 
 function minimax(game, depth, player) {
-  let bestScore = (player === 'O') ? -Infinity : Infinity;
+  let bestScore = (player === 'O') ? -1 : 1;
   let move = null;
 
   if(checkWin('X', game)) return { score: -10, move: null };
